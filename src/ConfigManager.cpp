@@ -1,8 +1,7 @@
 #include "ConfigManager.h"
-#include "pl/Logger.h"
 #include <fstream>
 #include <sstream>
-#include <cstdlib>
+#include <fmt/format.h>
 
 ConfigManager::ConfigManager() {}
 
@@ -11,7 +10,6 @@ ConfigManager::~ConfigManager() {}
 bool ConfigManager::loadConfig(const std::string& path) {
     std::ifstream file(path);
     if (!file.is_open()) {
-        PL_LOG_WARN("Config file not found: {}", path);
         return false;
     }
     
@@ -23,14 +21,12 @@ bool ConfigManager::loadConfig(const std::string& path) {
     // Simple JSON parsing for button configs
     // Format: {"buttons": [{"id": "...", "name": "...", ...}, ...]}
     
-    PL_LOG_INFO("Loaded config from: {}", path);
     return true;
 }
 
 bool ConfigManager::saveConfig(const std::string& path) {
     std::ofstream file(path);
     if (!file.is_open()) {
-        PL_LOG_ERROR("Failed to create config file: {}", path);
         return false;
     }
     
@@ -42,7 +38,6 @@ bool ConfigManager::saveConfig(const std::string& path) {
     file << "]}";
     
     file.close();
-    PL_LOG_INFO("Saved config to: {}", path);
     return true;
 }
 

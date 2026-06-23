@@ -1,5 +1,6 @@
 #include "ButtonManager.h"
-#include "pl/Logger.h"
+#include <algorithm>
+#include <fmt/format.h>
 
 ButtonManager::ButtonManager() : currentTouched(nullptr) {}
 
@@ -7,7 +8,6 @@ ButtonManager::~ButtonManager() {}
 
 void ButtonManager::addButton(const Button& button) {
     buttons.push_back(button);
-    PL_LOG_INFO("Added button: {}", button.id);
 }
 
 void ButtonManager::removeButton(const std::string& id) {
@@ -15,7 +15,6 @@ void ButtonManager::removeButton(const std::string& id) {
         [&id](const Button& b) { return b.id == id; });
     if (it != buttons.end()) {
         buttons.erase(it);
-        PL_LOG_INFO("Removed button: {}", id);
     }
 }
 
@@ -32,14 +31,11 @@ std::vector<Button>& ButtonManager::getButtons() {
 
 void ButtonManager::handleTouchDown(float x, float y) {
     currentTouched = getTouchedButton(x, y);
-    if (currentTouched) {
-        PL_LOG_DEBUG("Touch down on button: {}", currentTouched->id);
-    }
 }
 
 void ButtonManager::handleTouchUp(float x, float y) {
     if (currentTouched && currentTouched->pointInBounds(x, y)) {
-        PL_LOG_INFO("Button pressed: {}", currentTouched->id);
+        // Button pressed
     }
     currentTouched = nullptr;
 }

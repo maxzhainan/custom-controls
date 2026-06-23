@@ -1,10 +1,10 @@
 #include <cstdint>
 #include <cstring>
+#include <memory>
 #include "pl/Gloss.h"
 #include "pl/cpp/Signature.hpp"
 #include "pl/cpp/Patch.hpp"
 #include "pl/cpp/mod/RegisterHelper.hpp"
-#include "pl/Logger.h"
 #include "ButtonManager.h"
 #include "ButtonRenderer.h"
 #include "ConfigManager.h"
@@ -22,7 +22,6 @@ public:
     
     bool load() {
         GlossInit(true);
-        PL_LOG_INFO("CustomButtons mod loading...");
         
         // Initialize default buttons
         initializeDefaultButtons();
@@ -32,16 +31,13 @@ public:
         
         // Hook into input and rendering
         if (!hookInputSystem()) {
-            PL_LOG_ERROR("Failed to hook input system");
             return false;
         }
         
         if (!hookRenderSystem()) {
-            PL_LOG_ERROR("Failed to hook render system");
             return false;
         }
         
-        PL_LOG_INFO("CustomButtons mod loaded successfully");
         return true;
     }
     
@@ -83,14 +79,12 @@ private:
     bool hookInputSystem() {
         // Hook touch input - would need actual signature scanning
         // This is a placeholder for the actual hooking mechanism
-        PL_LOG_DEBUG("Input system hook placeholder");
         return true;
     }
     
     bool hookRenderSystem() {
         // Hook render pipeline - would need actual signature scanning
         // This is a placeholder for the actual hooking mechanism
-        PL_LOG_DEBUG("Render system hook placeholder");
         return true;
     }
     
