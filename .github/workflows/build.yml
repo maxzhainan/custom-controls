@@ -1,33 +1,59 @@
-name: Build
+name: Build CustomControls
 
 on:
   push:
-    branches: [main, master]
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
   pull_request:
-  workflow_dispatch:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [ arm64-v8a, armeabi-v7a ]
+
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
     
-    - uses: nttld/setup-ndk@v1
-      id: ndk
+    - name: Setup NDK
+      uses: nativeplatform/setup-ndk@v1
       with:
-        ndk-version: r26b
-        
+        ndk-version: r26
+        add-to-path: true
+    
+    - name: Create build directory
+      run: mkdir -p build
+    
+    - name: Configure CMake
+      run: |
+        cd build
+        cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
+              -DANDROID_PLATFORM=android-26 \
+              -DANDROID_ABI=${{ matrix.arch }} \
+              ..
+    
     - name: Build
       run: |
-        mkdir build
-        cmake -B build \
-          -DCMAKE_TOOLCHAIN_FILE=${{ steps.ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake \
-          -DANDROID_ABI=arm64-v8a \
-          -DANDROID_PLATFORM=android-24 \
-          -DCMAKE_BUILD_TYPE=Release
-        cmake --build build -j$(nproc)
-        
-    - uses: actions/upload-artifact@v4
+        cd build
+        cmake --build . --config Release -j$(nproc)
+    
+    - name: Create Release Directory
+      run: |
+        mkdir -p release
+        cp build/libCustomControls.so release/
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
       with:
-        name: libCustomButtons
-        path: build/libCustomButtons.so
+        name: libCustomControls-${{ matrix.arch }}
+        path: release/libCustomControls.so
+    
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: release/libCustomControls.so
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

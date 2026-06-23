@@ -1,22 +1,38 @@
 #pragma once
-
-#include "Button.h"
-#include <vector>
 #include <string>
+#include <map>
+#include <vector>
+#include "ControlsManager.h"
+
+struct Config {
+    std::string presetName;
+    std::map<std::string, std::vector<ControlButton>> presets;
+    float buttonOpacity = 0.7f;
+    int buttonSize = 80;
+    bool editMode = false;
+};
 
 class ConfigManager {
 public:
-    ConfigManager();
-    ~ConfigManager();
+    static ConfigManager& getInstance();
     
-    bool loadConfig(const std::string& path);
-    bool saveConfig(const std::string& path);
+    void loadConfig();
+    void saveConfig();
+    void createDefaultConfig();
+    void importConfig(const std::string& jsonPath);
+    void exportConfig(const std::string& jsonPath);
     
-    std::vector<Button> getParsedButtons() const;
+    const Config& getConfig() const;
+    void setConfig(const Config& cfg);
+    void addPreset(const std::string& name, const std::vector<ControlButton>& buttons);
     
 private:
-    std::vector<Button> buttons;
+    ConfigManager();
+    ~ConfigManager() = default;
     
-    Button parseButtonJson(const std::string& json);
-    std::string buttonToJson(const Button& button) const;
+    Config config;
+    std::string configPath;
+    
+    std::string getConfigPath();
+    bool fileExists(const std::string& path);
 };
