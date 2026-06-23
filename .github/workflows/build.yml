@@ -46,15 +46,8 @@ jobs:
         cp build/libCustomControls.so release/
     
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: libCustomControls-${{ matrix.arch }}
         path: release/libCustomControls.so
     
-    - name: Create Release
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v1
-      with:
-        files: release/libCustomControls.so
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
