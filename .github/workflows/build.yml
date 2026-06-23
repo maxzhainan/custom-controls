@@ -1,53 +1,32 @@
-name: Build CustomControls
 
 on:
   push:
-    branches: [ main, develop ]
-    tags: [ 'v*' ]
+    branches: [main, master]
   pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch: [ arm64-v8a, armeabi-v7a ]
-
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
-    - name: Setup NDK
-      uses: nativeplatform/setup-ndk@v1
+    - uses: nttld/setup-ndk@v1
+      id: ndk
       with:
-        ndk-version: r26
-        add-to-path: true
-    
-    - name: Create build directory
-      run: mkdir -p build
-    
-    - name: Configure CMake
-      run: |
-        cd build
-        cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
-              -DANDROID_PLATFORM=android-26 \
-              -DANDROID_ABI=${{ matrix.arch }} \
-              ..
-    
+        ndk-version: r26b
+        
     - name: Build
       run: |
-        cd build
-        cmake --build . --config Release -j$(nproc)
-    
-    - name: Create Release Directory
-      run: |
-        mkdir -p release
-        cp build/libCustomControls.so release/
-    
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
+        mkdir build
+        cmake -B build \
+          -DCMAKE_TOOLCHAIN_FILE=${{ steps.ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake \
+          -DANDROID_ABI=arm64-v8a \
+          -DANDROID_PLATFORM=android-24 \
+          -DCMAKE_BUILD_TYPE=Release
+        cmake --build build -j$(nproc)
+        
+    - uses: actions/upload-artifact@v4
       with:
-        name: libCustomControls-${{ matrix.arch }}
-        path: release/libCustomControls.so
-    
+        name: libCustomButtons
+        path: build/libCustomButtons.so
