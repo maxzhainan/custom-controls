@@ -1,6 +1,5 @@
-// This is a minimal JSON header stub for nlohmann/json
-// In production, download from: https://github.com/nlohmann/json/releases
-// Place full json.hpp in this location
+// Minimal JSON header for nlohmann/json compatibility
+// For production, use: https://github.com/nlohmann/json/releases
 
 #ifndef NLOHMANN_JSON_HPP
 #define NLOHMANN_JSON_HPP
@@ -37,23 +36,38 @@ public:
     bool contains(const std::string& key) const;
     
     json& operator[](const std::string& key);
+    const json& operator[](const std::string& key) const;
+    
     json& operator[](size_t index);
     const json& operator[](size_t index) const;
     
     template<typename T>
-    T value(const std::string& key, const T& default_value) const;
+    T value(const std::string& key, const T& default_value) const {
+        if (contains(key)) {
+            return (*this)[key];
+        }
+        return default_value;
+    }
     
     std::string dump(int indent = -1) const;
     size_t size() const;
     
-    static json array() { return json(); }
-    static json object() { return json(); }
+    static json array() { 
+        json j;
+        j.type_ = value_type::array;
+        return j;
+    }
+    static json object() { 
+        json j;
+        j.type_ = value_type::object;
+        return j;
+    }
     
     friend std::istream& operator>>(std::istream& is, json& j);
     friend std::ostream& operator<<(std::ostream& os, const json& j);
     
 private:
-    value_type type_;
+    value_type type_ = value_type::null;
     std::map<std::string, json> object_;
     std::vector<json> array_;
     std::string string_;
