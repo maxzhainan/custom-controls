@@ -16,6 +16,7 @@ set(SOURCES
     src/JoystickControl.cpp
     src/LayoutManager.cpp
     src/InputDispatcher.cpp
+    lib/nlohmann/json.cpp
 )
 
 # Create library
