@@ -1,116 +1,284 @@
-# CustomControls
+# Core Architecture - Control Layout System
 
-Customizable on-screen controls mod for Minecraft: Bedrock Edition. Inspired by Amethyst and PojavLauncher.
+A JSON-based, expression-evaluated control layout system for game input handling with dynamic positioning.
 
 ## Features
 
-- 🎮 Customizable button layouts (drag & drop positioning)
-- 📋 Multiple presets (default, compact, pvp)
-- 💾 JSON config import/export
-- 🔧 Edit mode for button repositioning
-- ⚡ Fast key injection with proper KeyCodes
-- 🎨 Adjustable opacity and button sizes
-- 📱 Touch-optimized interface
+- **JSON-based Control Layouts** - Define controls in declarative JSON format
+- **Dynamic Positioning** - Use mathematical expressions (exp4j-like) for responsive layouts
+- **Expression Evaluation Engine** - Runtime evaluation of position/size expressions
+- **Touch Event Handling** - Full multi-touch support with collision detection
+- **Button Controls** - Simple press/release buttons with keycode dispatch
+- **Joystick Controls** - Analog stick input with deadzone and axis mapping
+- **Button Drawers** - Container controls for grouping related buttons
+- **Safe Area Boundaries** - Screen boundary constraints for UI layout
+- **Input Dispatcher** - Centralized keyboard/mouse input dispatching
 
-## Installation
+## Architecture
 
-### Requirements
-- LeviLauncher (Android)
-- Android NDK r26+
-- CMake 3.21+
-
-### Build
-```bash
-mkdir build && cd build
-cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
-      -DANDROID_PLATFORM=android-26 \
-      -DANDROID_ABI=arm64-v8a ..
-cmake --build . --config Release
+```
+LayoutManager (coordinator)
+├── ExpressionEvaluator (expression parsing & evaluation)
+├── Control (base class)
+│   ├── ButtonControl
+│   ├── JoystickControl
+│   └── SafeArea
+└── InputDispatcher (key event handling)
 ```
 
-### Install
-1. Copy `libCustomControls.so` to LeviLauncher mods folder
-2. Place `config.json` in `/sdcard/Android/data/com.mojang.minecraftpe/files/`
-3. Launch Minecraft
+## File Structure
 
-## Configuration
+```
+core-architecture/
+├── include/
+│   ├── Control.h
+│   ├── ButtonControl.h
+│   ├── JoystickControl.h
+│   ├── LayoutManager.h
+│   ├── ExpressionEvaluator.h
+│   └── InputDispatcher.h
+├── src/
+│   ├── Control.cpp
+│   ├── ButtonControl.cpp
+│   ├── JoystickControl.cpp
+│   ├── LayoutManager.cpp
+│   ├── ExpressionEvaluator.cpp
+│   └── InputDispatcher.cpp
+├── assets/layouts/
+│   └── default.json (sample layout)
+├── examples/
+│   └── example.cpp
+├── lib/
+│   └── nlohmann/
+│       └── json.hpp (JSON library stub)
+├── CMakeLists.txt
+└── README.md
+```
 
-### Default Presets
-- **default**: Standard WASD-style layout
-- **compact**: Minimal button layout
-- **pvp**: Large attack/place buttons for PvP
+## JSON Layout Format
 
-### Custom Presets
-Edit `config.json` and add new preset:
-
+### Basic Structure
 ```json
 {
-  "presetName": "custom",
-  "presets": {
-    "custom": [
-      {
-        "id": "jump",
-        "label": "JUMP",
-        "x": 50,
-        "y": 500,
-        "width": 80,
-        "height": 80,
-        "keyCode": 32
-      }
-    ]
+  "version": "1.0",
+  "name": "Default Control Layout",
+  "controls": [
+    { /* control definitions */ }
+  ]
+}
+```
+
+### Control Properties
+
+#### Static Position
+```json
+{
+  "id": "button_jump",
+  "type": "button",
+  "name": "Jump",
+  "x": 100,
+  "y": 300,
+  "width": 60,
+  "height": 60,
+  "keyCodes": [32],
+  "color": "#FF5722"
+}
+```
+
+#### Dynamic Position
+```json
+{
+  "id": "button_menu",
+  "type": "button",
+  "name": "Menu",
+  "dynamicX": "screenWidth - 70",
+  "dynamicY": "screenHeight - 70",
+  "width": 60,
+  "height": 60,
+  "keyCodes": [27]
+}
+```
+
+### Control Types
+
+#### Button
+Simple press/release with keycode dispatch.
+```json
+{
+  "id": "button_jump",
+  "type": "button",
+  "keyCodes": [32]
+}
+```
+
+#### Joystick
+Analog stick with axis movement.
+```json
+{
+  "id": "joystick_left",
+  "type": "joystick",
+  "x": 50,
+  "y": 400,
+  "width": 100,
+  "height": 100,
+  "radius": 50,
+  "deadZone": 0.2
+}
+```
+
+#### Button Drawer
+Container for grouped buttons.
+```json
+{
+  "id": "action_drawer",
+  "type": "button_drawer",
+  "children": [
+    { "id": "attack", "keyCodes": [17] },
+    { "id": "interact", "keyCodes": [69] }
+  ]
+}
+```
+
+#### Safe Area
+Defines viewport boundaries.
+```json
+{
+  "id": "safe_area",
+  "type": "safe_area",
+  "dynamicWidth": "screenWidth - safeAreaPadding * 2",
+  "dynamicHeight": "screenHeight - safeAreaPadding * 2"
+}
+```
+
+## Expression Evaluation
+
+Variables available in expressions:
+- `screenWidth` - Display width in pixels
+- `screenHeight` - Display height in pixels
+- `safeAreaPadding` - Safe area margin (default: 10px)
+
+### Supported Operations
+- Arithmetic: `+`, `-`, `*`, `/`, `%`
+- Functions: `sin()`, `cos()`, `tan()`, `sqrt()`, `abs()`, `floor()`, `ceil()`
+- Parentheses: `(expression)`
+
+### Example Expressions
+```
+screenWidth - 70                    // Right-aligned at 70px from edge
+screenHeight / 2                    // Vertically centered
+screenWidth * 0.5 - width / 2       // Horizontally centered
+(screenWidth - 200) / 2             // Complex calculation
+```
+
+## Usage Example
+
+```cpp
+#include "LayoutManager.h"
+#include "InputDispatcher.h"
+
+int main() {
+    LayoutManager layoutMgr;
+    InputDispatcher inputMgr;
+    
+    // Set screen size
+    layoutMgr.setScreenDimensions(1920, 1080);
+    
+    // Load layout
+    layoutMgr.loadLayout("assets/layouts/default.json");
+    
+    // Setup input callbacks
+    inputMgr.setKeyCallback([](int keyCode, bool pressed) {
+        std::cout << "Key: " << keyCode << " - " 
+                  << (pressed ? "down" : "up") << std::endl;
+    });
+    
+    // Simulate touch
+    layoutMgr.onTouchDown(100, 300);  // Touch down
+    layoutMgr.onTouchMove(105, 305);  // Touch move
+    layoutMgr.onTouchUp(100, 300);    // Touch up
+    
+    return 0;
+}
+```
+
+## Building
+
+### Requirements
+- C++17 or later
+- CMake 3.10+
+- nlohmann/json library
+
+### Compile
+```bash
+mkdir build
+cd build
+cmake ..
+make
+./core_example
+```
+
+### With nlohmann/json
+```bash
+# Ubuntu/Debian
+apt-get install nlohmann-json3-dev
+
+# Or download from GitHub
+# https://github.com/nlohmann/json/releases
+```
+
+## Input Mapping
+
+### Touch Coordinates
+Touch input is in screen-space (0,0 at top-left).
+
+### Button Press to KeyCode
+Buttons dispatch keyboard keycodes when touched.
+
+### Joystick to Movement
+Joystick position converted to normalized axis values (-1.0 to 1.0).
+
+### Multi-touch Support
+All controls can be touched simultaneously.
+
+## Configuration Options
+
+### Layout Metadata
+```json
+{
+  "metadata": {
+    "scale": 1.0,
+    "safeAreaPadding": 10
   }
 }
 ```
 
-### KeyCodes Reference
-- `32`: SPACE (Jump)
-- `29`: ALT (Sneak)
-- `1`: LMB (Attack)
-- `3`: RMB (Place)
-- `16`: Q (Drop)
-- `18`: E (Inventory)
-- `19-24`: Arrow Keys
-- `45`: M (Map)
-- `46`: L (Crafting)
-
-## Edit Mode
-
-Press config button (default: INV) to enter edit mode:
-- Drag buttons to reposition
-- Long press to remove
-- Confirm to save
-
-## KeyCode Injection
-
-The mod hooks directly into input system:
-```cpp
-void ControlsManager::injectKeyCode(int keyCode) {
-    // Sends KeyCode to game input thread
+### Control Rendering
+```json
+{
+  "renderConfig": {
+    "enableTouchFeedback": true,
+    "buttonPressOpacity": 0.7,
+    "defaultBorderWidth": 2,
+    "defaultCornerRadius": 8,
+    "textSize": 14
+  }
 }
-```
-
-## Config Menu (Fallback)
-
-If `config.json` not found, default menu appears:
-- Select preset
-- Import config
-- Export config
-- Reset to defaults
-
-## API Hooks
-
-```cpp
-void ControlsManager_Init();
-void ControlsManager_Render();
-void ControlsManager_OnTouch(int x, int y, int action);
 ```
 
 ## License
 
-MIT License - see LICENSE file
+Open source - Use freely in your projects.
 
-## Credits
+## Contributing
 
-- Inspired by [Amethyst](https://github.com/angelauramc)
-- Design pattern from [PojavLauncher](https://github.com/PojavLauncherTeam)
-- Built for OpenMCBE community
+Add new control types or features as needed:
+
+1. Create new Control subclass (e.g., `SliderControl`)
+2. Add parsing in `LayoutManager::createControlFromJson()`
+3. Define JSON schema in documentation
+4. Update example layouts
+
+---
+
+**Version**: 1.0  
+**Last Updated**: June 2024

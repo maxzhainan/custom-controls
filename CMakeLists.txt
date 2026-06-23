@@ -1,29 +1,30 @@
-cmake_minimum_required(VERSION 3.21)
-project(CustomControls)
+cmake_minimum_required(VERSION 3.10)
+project(CoreArchitecture)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/cmake/toolchain.cmake")
-endif()
+# Include directories
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
-add_library(${PROJECT_NAME} SHARED
-    src/main.cpp
-    src/ControlsManager.cpp
-    src/ConfigManager.cpp
-    src/UIRenderer.cpp
+# Add source files
+set(SOURCES
+    src/ExpressionEvaluator.cpp
+    src/Control.cpp
+    src/ButtonControl.cpp
+    src/JoystickControl.cpp
+    src/LayoutManager.cpp
+    src/InputDispatcher.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
+# Create library
+add_library(core_architecture STATIC ${SOURCES})
 
-target_compile_options(${PROJECT_NAME} PRIVATE
-    -Wall -Wextra -O3
-)
+# Optional: Example executable
+add_executable(core_example examples/example.cpp)
+target_link_libraries(core_example core_architecture)
 
-if(ANDROID)
-    find_package(game-activity REQUIRED CONFIG)
-    target_link_libraries(${PROJECT_NAME} PRIVATE game-activity::game-activity)
-endif()
+# Include nlohmann/json (header-only)
+# Download from: https://github.com/nlohmann/json/releases
+# Or install via: apt-get install nlohmann-json3-dev

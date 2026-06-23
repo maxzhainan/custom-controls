@@ -1,0 +1,121 @@
+{
+  "version": "1.0",
+  "name": "Default Control Layout",
+  "description": "Default game control layout with dynamic positioning",
+  "metadata": {
+    "created": "2024-06-23",
+    "scale": 1.0,
+    "safeAreaPadding": 10
+  },
+  "safeArea": {
+    "id": "safe_area",
+    "x": 0,
+    "y": 0,
+    "dynamicWidth": "screenWidth - safeAreaPadding * 2",
+    "dynamicHeight": "screenHeight - safeAreaPadding * 2",
+    "type": "safe_area"
+  },
+  "controls": [
+    {
+      "id": "button_jump",
+      "type": "button",
+      "name": "Jump",
+      "x": 100,
+      "y": 300,
+      "width": 60,
+      "height": 60,
+      "keyCodes": [32],
+      "color": "#FF5722",
+      "enabled": true
+    },
+    {
+      "id": "button_sprint",
+      "type": "button",
+      "name": "Sprint",
+      "x": 100,
+      "y": 380,
+      "width": 60,
+      "height": 60,
+      "keyCodes": [16],
+      "color": "#2196F3",
+      "enabled": true
+    },
+    {
+      "id": "joystick_left",
+      "type": "joystick",
+      "name": "Movement",
+      "x": 50,
+      "y": 400,
+      "width": 100,
+      "height": 100,
+      "radius": 50,
+      "deadZone": 0.2,
+      "axisX": "horizontal",
+      "axisY": "vertical",
+      "color": "#4CAF50",
+      "enabled": true
+    },
+    {
+      "id": "button_drawer_actions",
+      "type": "button_drawer",
+      "name": "Actions",
+      "dynamicX": "screenWidth - 80",
+      "y": 50,
+      "width": 70,
+      "height": 70,
+      "color": "#9C27B0",
+      "toggleMode": false,
+      "children": [
+        {
+          "id": "action_attack",
+          "name": "Attack",
+          "keyCodes": [17],
+          "color": "#F44336"
+        },
+        {
+          "id": "action_interact",
+          "name": "Interact",
+          "keyCodes": [69],
+          "color": "#FF9800"
+        },
+        {
+          "id": "action_inventory",
+          "name": "Inventory",
+          "keyCodes": [73],
+          "color": "#673AB7"
+        }
+      ]
+    },
+    {
+      "id": "button_menu",
+      "type": "button",
+      "name": "Menu",
+      "dynamicX": "screenWidth - 70",
+      "dynamicY": "screenHeight - 70",
+      "width": 60,
+      "height": 60,
+      "keyCodes": [27],
+      "color": "#607D8B",
+      "enabled": true
+    }
+  ],
+  "inputMappings": {
+    "touch_to_screen": {
+      "description": "Touch coordinates are already in screen-space",
+      "scale": 1.0
+    },
+    "button_press_to_keycode": {
+      "description": "Button press dispatches keyCode directly"
+    },
+    "joystick_to_mouse": {
+      "description": "Joystick movement converted to mouse delta"
+    }
+  },
+  "renderConfig": {
+    "enableTouchFeedback": true,
+    "buttonPressOpacity": 0.7,
+    "defaultBorderWidth": 2,
+    "defaultCornerRadius": 8,
+    "textSize": 14
+  }
+}
